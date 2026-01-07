@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Inicio de Sesión Detectado</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8f8f8 0%, #f0fffe 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(23, 101, 133, 0.15);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #36cecc 0%, #27b1bf 50%, #176585 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .login-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            font-size: 40px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 40px 30px;
+            background: #ffffff;
+        }
+
+        .alert-box {
+            background: linear-gradient(135deg, #fff8e1 0%, #fff3cd 100%);
+            border-left: 4px solid #ffc107;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .alert-box p {
+            font-size: 14px;
+            color: #856404;
+            margin: 0;
+        }
+
+        .info-section {
+            margin-bottom: 20px;
+        }
+
+        .info-label {
+            font-size: 13px;
+            color: #176585;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-label i {
+            font-size: 16px;
+            color: #36cecc;
+        }
+
+        .info-value {
+            font-size: 16px;
+            color: #2c3e50;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, #f0fffe 0%, #e8f8f8 100%);
+            border-radius: 8px;
+            word-break: break-word;
+            font-weight: 500;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .security-notice {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 4px solid #2196f3;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+
+        .security-notice h3 {
+            color: #176585;
+            font-size: 16px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .security-notice p {
+            font-size: 14px;
+            color: #0d47a1;
+            margin-bottom: 10px;
+        }
+
+        .security-notice ul {
+            margin-left: 20px;
+            color: #0d47a1;
+        }
+
+        .security-notice li {
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #36cecc 0%, #27b1bf 100%);
+            color: white !important;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(54, 206, 204, 0.3);
+            margin: 5px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(54, 206, 204, 0.4);
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #36cecc, transparent);
+            margin: 30px 0;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, #176585 0%, #27b1bf 100%);
+            padding: 25px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .footer p {
+            margin: 5px 0;
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .footer-brand {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .email-container {
+                border-radius: 0;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-button {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <div class="header">
+
+        <h1>Nuevo Inicio de Sesión Detectado</h1>
+        <p>Se ha registrado un acceso a tu cuenta</p>
+    </div>
+
+    <div class="content">
+        <div class="alert-box">
+            <p>
+                <strong>⚠️ Importante:</strong> Si reconoces esta actividad, puedes ignorar este correo. 
+                Si no fuiste tú, te recomendamos cambiar tu contraseña inmediatamente.
+            </p>
+        </div>
+
+        <p style="font-size: 16px; color: #2c3e50; margin-bottom: 25px;">
+            Hola, hemos detectado un nuevo inicio de sesión en tu cuenta. A continuación te mostramos los detalles:
+        </p>
+
+        <div class="info-section">
+            <div class="info-label">
+                👤 Nombre de Usuario
+            </div>
+            <div class="info-value" th:text="${username ?: 'usuario_ejemplo'}">
+                usuario_ejemplo
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-section">
+                <div class="info-label">
+                    📅 Fecha
+                </div>
+                <div class="info-value" th:text="${loginDate ?: '12/10/2025'}">
+                    12/10/2025
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="info-label">
+                    🕐 Hora
+                </div>
+                <div class="info-value" th:text="${loginTime ?: '14:35:22'}">
+                    14:35:22
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-label">
+                🌐 Dirección IP
+            </div>
+            <div class="info-value" th:text="${ipAddress ?: '192.168.1.1'}">
+                192.168.1.1
+            </div>
+        </div>
+
+        <div class="security-notice">
+            <h3>🛡️ Recomendaciones de Seguridad</h3>
+            <p><strong>Si no reconoces este inicio de sesión:</strong></p>
+            <ul>
+                <li>Cambia tu contraseña inmediatamente</li>
+                <li>Revisa la actividad reciente de tu cuenta</li>
+                <li>Habilita la autenticación de dos factores</li>
+                <li>Verifica que tu correo de recuperación esté actualizado</li>
+            </ul>
+        </div>
+
+        <div class="button-container">
+            <a th:href="${accountActivityUrl ?: 'https://especlubsmatch.app/login'}"
+               class="cta-button">
+                Ver Actividad de la Cuenta
+            </a>
+        </div>
+
+        <div class="divider"></div>
+
+        <p style="font-size: 13px; color: #7f8c8d; text-align: center; margin-top: 20px;">
+            Este es un correo automático de seguridad. Si tienes alguna pregunta o inquietud, 
+            contáctanos inmediatamente.
+        </p>
+    </div>
+
+    <div class="footer">
+        <div class="footer-brand">ESPE Clubs Match</div>
+        <p>&copy; 2025 ESPE Clubs Match. Todos los derechos reservados.</p>
+        <p style="font-size: 12px; margin-top: 10px; opacity: 0.8;">
+            Este mensaje fue enviado para proteger la seguridad de tu cuenta
+        </p>
+    </div>
+</div>
+</body>
+</html>

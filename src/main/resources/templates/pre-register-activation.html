@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pre-registro de Cuenta</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8f8f8 0%, #f0fffe 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(23, 101, 133, 0.15);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #36cecc 0%, #27b1bf 50%, #176585 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .lock-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            border: 3px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .lock-symbol {
+            width: 35px;
+            height: 40px;
+            border: 4px solid white;
+            border-radius: 6px;
+            position: relative;
+            margin-top: 10px;
+        }
+
+        .lock-symbol::before {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 20px;
+            border: 4px solid white;
+            border-bottom: none;
+            border-radius: 12px 12px 0 0;
+            top: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .lock-symbol::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 40px 30px;
+            background: #ffffff;
+        }
+
+        .alert-box {
+            background: linear-gradient(135deg, #fff8e1 0%, #ffe9b3 100%);
+            border-left: 4px solid #ffa726;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .alert-box p {
+            font-size: 14px;
+            color: #e65100;
+            margin: 0;
+        }
+
+        .info-section {
+            margin-bottom: 20px;
+        }
+
+        .info-label {
+            font-size: 13px;
+            color: #176585;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            color: #2c3e50;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #f0fffe 0%, #e8f8f8 100%);
+            border-radius: 8px;
+            word-break: break-word;
+        }
+
+        .pin-section {
+            background: linear-gradient(135deg, #176585 0%, #27b1bf 100%);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 30px 0;
+            box-shadow: 0 4px 15px rgba(23, 101, 133, 0.2);
+        }
+
+        .pin-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .pin-code {
+            font-size: 42px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 8px;
+            font-family: 'Courier New', monospace;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px 30px;
+            border-radius: 10px;
+            display: inline-block;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .pin-instruction {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.85);
+            margin-top: 15px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #36cecc 0%, #27b1bf 100%);
+            color: white !important;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(54, 206, 204, 0.3);
+            margin-top: 10px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(54, 206, 204, 0.4);
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #36cecc, transparent);
+            margin: 30px 0;
+        }
+
+        .security-note {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .security-note h3 {
+            font-size: 16px;
+            color: #176585;
+            margin-bottom: 10px;
+        }
+
+        .security-note ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .security-note li {
+            font-size: 14px;
+            color: #5a6c7d;
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .security-note li::before {
+            content: '•';
+            color: #36cecc;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, #176585 0%, #27b1bf 100%);
+            padding: 25px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .footer p {
+            margin: 5px 0;
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .footer-brand {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .email-container {
+                border-radius: 0;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .pin-code {
+                font-size: 32px;
+                letter-spacing: 4px;
+                padding: 15px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <div class="header">
+        <h1>Pre-registro Completado</h1>
+        <p>Tu cuenta ha sido pre-registrada exitosamente</p>
+    </div>
+
+    <div class="content">
+        <div class="alert-box">
+            <p><strong>⚠️ Importante:</strong> Para completar el proceso, debes ingresar el PIN en el sistema para activar tu cuenta.</p>
+        </div>
+
+        <p style="font-size: 16px; color: #2c3e50; margin-bottom: 25px;">
+            Hola <strong th:text="${nombre != null ? nombre : 'Usuario'}">Usuario</strong> <strong th:text="${apellidos != null ? apellidos : ''}"></strong>,
+        </p>
+
+        <p style="font-size: 15px; color: #5a6c7d; margin-bottom: 25px;">
+            ¡Bienvenido a ESPE Clubs Match! Se ha realizado el pre-registro de tu cuenta exitosamente. Para completar la activación, necesitas ingresar el siguiente código PIN en el sistema:
+        </p>
+
+        <div class="pin-section">
+            <div class="pin-label">Tu Código PIN de Activación</div>
+            <div class="pin-code" th:text="${codigoPin != null ? codigoPin : '123456'}">123456</div>
+            <div class="pin-instruction">
+                Ingresa este código PIN en el sistema para activar tu cuenta
+            </div>
+        </div>
+
+        <p style="font-size: 15px; color: #2c3e50; margin-bottom: 20px; text-align: center;">
+            <strong>Debes ingresar este código PIN en la página de activación para poder completar el registro de tu cuenta.</strong>
+        </p>
+
+        <div class="button-container">
+            <a href="https://especlubsmatch.app/activate-account" class="cta-button">
+                Activar mi Cuenta
+            </a>
+        </div>
+
+        <div class="security-note">
+            <h3>🔒 Información Importante</h3>
+            <ul>
+                <li>Este código PIN es válido por tiempo limitado</li>
+                <li>No compartas este código con nadie</li>
+                <li>Si no realizaste este registro, contacta con soporte inmediatamente</li>
+                <li>Una vez activada tu cuenta, podrás acceder a todas las funcionalidades</li>
+            </ul>
+        </div>
+
+        <p style="font-size: 14px; color: #7f8c8d; margin-top: 25px; text-align: center;">
+            Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos.
+        </p>
+    </div>
+
+    <div class="footer">
+        <div class="footer-brand">ESPE Clubs Match</div>
+        <p>&copy; 2025 ESPE Clubs Match. Todos los derechos reservados.</p>
+        <p style="font-size: 12px; margin-top: 10px; opacity: 0.8;">
+            Este es un correo automático, por favor no respondas a este mensaje.
+        </p>
+    </div>
+</div>
+</body>
+</html>
