@@ -1,6 +1,8 @@
 package com.especlub.match.dto.request;
 
 import lombok.Data;
+import jakarta.validation.constraints.NotNull;
+import java.time.LocalDate;
 
 @Data
 public class CreateUserRequestDto {
@@ -10,4 +12,8 @@ public class CreateUserRequestDto {
     private String firstName;
     private String lastName;
     private String password;
+    private LocalDate dateOfBirth;
+
+    @NotNull(message = "Role ID is required")
+    private Long roleId;
 }

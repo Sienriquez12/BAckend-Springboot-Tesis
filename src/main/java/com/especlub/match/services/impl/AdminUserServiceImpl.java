@@ -4,7 +4,9 @@ import com.especlub.match.dto.request.CreateUserRequestDto;
 import com.especlub.match.dto.request.UpdateUserRequestDto;
 import com.especlub.match.dto.request.UserAdminDto;
 import com.especlub.match.models.UserInfo;
+import com.especlub.match.models.UserRole;
 import com.especlub.match.repositories.UserInfoRepository;
+import com.especlub.match.repositories.UserRoleRepository;
 import com.especlub.match.services.interfaces.AdminUserService;
 import com.especlub.match.shared.exceptions.CustomExceptions;
 import lombok.RequiredArgsConstructor;
@@ -12,13 +14,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
 public class AdminUserServiceImpl implements AdminUserService {
 
     private final UserInfoRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
 
     private static final String USER_NOT_FOUND_MSG = "User not found";
@@ -43,6 +48,10 @@ public class AdminUserServiceImpl implements AdminUserService {
     @Override
     @Transactional
     public UserAdminDto create(CreateUserRequestDto dto) {
+        // Validate that the role exists and is active
+        UserRole role = userRoleRepository.findByIdAndRecordStatusTrue(dto.getRoleId())
+                .orElseThrow(() -> new CustomExceptions("Role not found or inactive", 404));
+
         // If there's an active user with same email or username -> conflict
         if (userRepository.existsByEmailAndRecordStatusTrue(dto.getEmail())) {
             throw new CustomExceptions("Email already in use", 400);
@@ -59,8 +68,15 @@ public class AdminUserServiceImpl implements AdminUserService {
             inactiveByEmail.setPhone(dto.getPhone());
             inactiveByEmail.setNames(dto.getFirstName());
             inactiveByEmail.setSurnames(dto.getLastName());
+            inactiveByEmail.setBirthDate(dto.getDateOfBirth());
             inactiveByEmail.setPassword(passwordEncoder.encode(dto.getPassword()));
             inactiveByEmail.setRecordStatus(true);
+            inactiveByEmail.setRoles(List.of(role));
+            inactiveByEmail.setUpdatedAt(LocalDateTime.now());
+            inactiveByEmail.setCreatedAt(LocalDateTime.now());
+            inactiveByEmail.setAcceptPrivacy(true);
+            inactiveByEmail.setAcceptTerms(true);
+            inactiveByEmail.setFirstLogin(false);
             UserInfo saved = userRepository.save(inactiveByEmail);
             return toDto(saved);
         }
@@ -73,8 +89,16 @@ public class AdminUserServiceImpl implements AdminUserService {
             inactiveByUsername.setPhone(dto.getPhone());
             inactiveByUsername.setNames(dto.getFirstName());
             inactiveByUsername.setSurnames(dto.getLastName());
+            inactiveByUsername.setBirthDate(dto.getDateOfBirth());
             inactiveByUsername.setPassword(passwordEncoder.encode(dto.getPassword()));
             inactiveByUsername.setRecordStatus(true);
+            inactiveByUsername.setRoles(List.of(role));
+            inactiveByUsername.setUpdatedAt(LocalDateTime.now());
+            inactiveByUsername.setCreatedAt(LocalDateTime.now());
+            inactiveByUsername.setAcceptPrivacy(true);
+            inactiveByUsername.setAcceptTerms(true);
+            inactiveByUsername.setFirstLogin(false);
+
             UserInfo saved = userRepository.save(inactiveByUsername);
             return toDto(saved);
         }
@@ -86,8 +110,15 @@ public class AdminUserServiceImpl implements AdminUserService {
         user.setPhone(dto.getPhone());
         user.setNames(dto.getFirstName());
         user.setSurnames(dto.getLastName());
+        user.setBirthDate(dto.getDateOfBirth());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setRecordStatus(true);
+        user.setRoles(List.of(role));
+        user.setUpdatedAt(LocalDateTime.now());
+        user.setCreatedAt(LocalDateTime.now());
+        user.setAcceptPrivacy(true);
+        user.setAcceptTerms(true);
+        user.setFirstLogin(false);
         UserInfo saved = userRepository.save(user);
         return toDto(saved);
     }
@@ -119,6 +150,13 @@ public class AdminUserServiceImpl implements AdminUserService {
     }
 
     private UserAdminDto toDto(UserInfo u) {
+        List<String> roleNames = new ArrayList<>();
+        if (u.getRoles() != null) {
+            roleNames = u.getRoles().stream()
+                    .map(UserRole::getName)
+                    .toList();
+        }
+
         return UserAdminDto.builder()
                 .id(u.getId())
                 .username(u.getUsername())
@@ -126,6 +164,8 @@ public class AdminUserServiceImpl implements AdminUserService {
                 .phone(u.getPhone())
                 .firstName(u.getNames())
                 .lastName(u.getSurnames())
+                .dateOfBirth(u.getBirthDate())
+                .roles(roleNames)
                 .build();
     }
 }
