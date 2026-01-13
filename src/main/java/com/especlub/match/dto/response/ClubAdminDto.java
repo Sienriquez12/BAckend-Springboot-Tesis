@@ -3,6 +3,7 @@ package com.especlub.match.dto.response;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
@@ -18,4 +19,12 @@ public class ClubAdminDto {
     private Set<String> interestNames;
     private Set<Long> desiredSoftSkillIds;
     private Set<String> desiredSoftSkillNames;
+
+    // additional fields for more complete info
+    private Long clubTypeId;
+    private String clubTypeName;
+    private String whatsappGroupLink;
+    private Boolean recordStatus;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

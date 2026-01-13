@@ -4,9 +4,8 @@ import lombok.Data;
 
 @Data
 public class StudentPreferenceRequestDto {
-    private String preferredClubType;
+    private Long preferredClubTypeId;
     private String avoidClubTypes;
     private String preferredMeetingFormat;
     private Integer priorityWeight;
 }
-

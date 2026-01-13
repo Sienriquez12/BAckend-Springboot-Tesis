@@ -39,6 +39,11 @@ public class Club {
 
     private String whatsappGroupLink;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "club_type_id")
+    @Comment("Tipo de club al que pertenece (Deportivo, Académico, Cultural, etc.)")
+    private ClubType clubType;
+
     @ManyToMany
     @JoinTable(
             name = "club_reasons",

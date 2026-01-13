@@ -2,9 +2,9 @@ package com.especlub.match.services.impl;
 
 import com.especlub.match.dto.request.CreateSurveyRequestDto;
 import com.especlub.match.dto.response.StudentSurveyResponseDto;
+import com.especlub.match.models.Club;
 import com.especlub.match.models.Student;
 import com.especlub.match.models.StudentSurvey;
-import com.especlub.match.models.Club;
 import com.especlub.match.repositories.ClubReasonRepository;
 import com.especlub.match.repositories.InterestRepository;
 import com.especlub.match.repositories.SoftSkillRepository;
@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -29,6 +30,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.especlub.match.repositories.LlmInteractionRepository;
 import com.especlub.match.repositories.UserInfoRepository;
+import com.especlub.match.repositories.StudentMiAnswerRepository;
+import com.especlub.match.models.StudentMiAnswer;
+import com.especlub.match.repositories.ClubTypeRepository;
+import com.especlub.match.models.ClubType;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +50,8 @@ public class StudentSurveyServiceImpl implements StudentSurveyService {
     private final LlmInteractionRepository llmInteractionRepository;
     private final UserInfoRepository userInfoRepository;
     private final com.especlub.match.repositories.StudentPreferenceRepository studentPreferenceRepository;
+    private final StudentMiAnswerRepository studentMiAnswerRepository;
+    private final ClubTypeRepository clubTypeRepository;
 
     @Override
     @Transactional
@@ -125,15 +132,23 @@ public class StudentSurveyServiceImpl implements StudentSurveyService {
                         throw new CustomExceptions("Formato de preferredMeetingFormat inválido: " + p.getPreferredMeetingFormat(), 400);
                     }
                 }
-                com.especlub.match.models.StudentPreference pref = com.especlub.match.models.StudentPreference.builder()
-                        .student(student)
-                        .preferredClubType(p.getPreferredClubType())
-                        .avoidClubTypes(p.getAvoidClubTypes())
-                        .preferredMeetingFormat(mf)
-                        .priorityWeight(p.getPriorityWeight())
-                        .recordStatus(true)
-                        .createdAt(java.time.LocalDateTime.now())
-                        .build();
+
+                // Create the preference object directly instead of using builder to avoid type conflicts
+                com.especlub.match.models.StudentPreference pref = new com.especlub.match.models.StudentPreference();
+                pref.setStudent(student);
+                pref.setPreferredClubType(String.valueOf(p.getPreferredClubTypeId()));
+                // resolve preferredClubTypeId (client now sends the ClubType id)
+                if (p.getPreferredClubTypeId() != null) {
+                    ClubType ct = clubTypeRepository.findByIdAndRecordStatusTrue(p.getPreferredClubTypeId()).orElse(null);
+                    if (ct != null) pref.setPreferredClubType(ct.getName());
+                    else pref.setPreferredClubType(p.getPreferredClubTypeId().toString());
+                }
+                pref.setAvoidClubTypes(p.getAvoidClubTypes());
+                pref.setPreferredMeetingFormat(mf);
+                pref.setPriorityWeight(p.getPriorityWeight());
+                pref.setRecordStatus(true);
+                pref.setCreatedAt(java.time.LocalDateTime.now());
+
                 studentPreferenceRepository.save(pref);
             }
         }
@@ -170,16 +185,11 @@ public class StudentSurveyServiceImpl implements StudentSurveyService {
             student.setSemesterNumber(dto.getSemesterNumber());
             updated = true;
         }
-        if (dto.getPreferredClubType() != null) {
-            student.setPreferredClubType(dto.getPreferredClubType());
-            updated = true;
-        }
-        if (dto.getShortTermGoal() != null) {
-            student.setShortTermGoal(dto.getShortTermGoal());
-            updated = true;
-        }
-        if (dto.getLongTermGoal() != null) {
-            student.setLongTermGoal(dto.getLongTermGoal());
+        // if client sends preferredClubTypeId at root, resolve to ClubType name and persist on Student
+        if (dto.getPreferredClubTypeId() != null) {
+            ClubType ct = clubTypeRepository.findByIdAndRecordStatusTrue(dto.getPreferredClubTypeId()).orElse(null);
+            if (ct != null) student.setPreferredClubType(ct.getName());
+            else student.setPreferredClubType(dto.getPreferredClubTypeId().toString());
             updated = true;
         }
         if (dto.getIsOpenToNewExperiences() != null) {
@@ -261,6 +271,8 @@ public class StudentSurveyServiceImpl implements StudentSurveyService {
 
             // clamp
             if (score < 0) score = 0.0;
+            // ensure maximum 1.0 as requested
+            if (score > 1.0) score = 1.0;
 
             String reason = String.format("score=%.2f (interests+softskills overlap and availability/semester checks)", score);
 
@@ -270,7 +282,7 @@ public class StudentSurveyServiceImpl implements StudentSurveyService {
                     .score(Math.round(score * 100.0) / 100.0)
                     .reason(reason)
                     .build();
-        }).sorted((a,b) -> Double.compare(b.getScore(), a.getScore())).collect(Collectors.toList());
+        }).sorted((a,b) -> Double.compare(b.getScore(), a.getScore())).toList();
 
         return com.especlub.match.dto.response.RecommendationListDto.builder()
                 .studentId(studentId)
@@ -299,6 +311,29 @@ public class StudentSurveyServiceImpl implements StudentSurveyService {
             sb.append("- preferredClubType: ").append(student.getPreferredClubType()).append("\n");
             sb.append("- shortTermGoal: ").append(student.getShortTermGoal()).append("\n");
             sb.append("- longTermGoal: ").append(student.getLongTermGoal()).append("\n\n");
+
+            // attach Multiple Intelligence (MI) answers (questions + user's scores)
+            try {
+                List<StudentMiAnswer> miAnswers = studentMiAnswerRepository.findAllByStudentIdWithQuestion(student.getId());
+                if (miAnswers != null && !miAnswers.isEmpty()) {
+                    sb.append("Multiple Intelligence Answers:\n");
+                    StringBuilder midump = new StringBuilder();
+                    for (StudentMiAnswer a : miAnswers) {
+                        String qtext = a.getQuestion() != null ? a.getQuestion().getText() : "(pregunta no disponible)";
+                        Integer score = a.getScore();
+                        sb.append("- questionId: ").append(a.getQuestion() != null ? a.getQuestion().getId() : null).append("\n");
+                        sb.append("  text: ").append(qtext.replace("\n", " ")).append("\n");
+                        sb.append("  score: ").append(score).append("\n\n");
+                        midump.append("Q(id=").append(a.getQuestion() != null ? a.getQuestion().getId() : null)
+                                .append("): ").append(qtext.replace("\n", " "))
+                                .append(" => score=").append(score).append("\n");
+                    }
+                    // Log the MI answers that are sent to Gemini
+                    log.info("--- MI answers sent to Gemini ---\n{}--- End MI ---", midump.toString());
+                }
+            } catch (Exception e) {
+                log.warn("Could not load MI answers for prompt: {}", e.getMessage());
+            }
 
             sb.append("Clubs:\n");
             for (Club c : clubs) {
@@ -330,10 +365,10 @@ public class StudentSurveyServiceImpl implements StudentSurveyService {
             }
 
             String prompt = sb.toString();
-            //log.info("--- Prompt to Gemini ---\n{}\n--- End Prompt ---", prompt);
+            log.info("--- Prompt to Gemini ---\n{}\n--- End Prompt ---", prompt);
 
             String response = callChatModel(prompt);
-            //log.info("--- Gemini response ---\n{}\n--- End response ---", response);
+            log.info("--- Gemini response ---\n{}\n--- End response ---", response);
 
             survey.setRawAnswersJson(prompt);
             survey.setLlmResponse(response);
@@ -362,6 +397,10 @@ public class StudentSurveyServiceImpl implements StudentSurveyService {
 
     private String callChatModel(String prompt) {
         try {
+            if (chatModel == null) {
+                log.warn("ChatModel bean is not available; skipping LLM call");
+                return null;
+            }
             return chatModel.call(prompt);
         } catch (Exception e) {
             log.error("Error calling Gemini: {}", e.getMessage(), e);

@@ -8,14 +8,12 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AdminUserSummaryDto {
+@Builder
+public class UserRolesDto {
+    private Long userId;
     private String username;
-    private String email;
-    private String phone;
-    private String firstName;
-    private String lastName;
-    private List<String> roles; // added roles list
+    private List<String> roles;
 }
+

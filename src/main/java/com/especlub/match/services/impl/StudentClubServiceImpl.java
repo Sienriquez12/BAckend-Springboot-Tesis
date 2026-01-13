@@ -1,5 +1,6 @@
 package com.especlub.match.services.impl;
 
+import com.especlub.match.dto.response.ClubAdminDto;
 import com.especlub.match.models.Club;
 import com.especlub.match.models.ClubMember;
 import com.especlub.match.models.Student;
@@ -16,7 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -96,7 +100,7 @@ public class StudentClubServiceImpl implements StudentClubService {
     @Transactional
     public void leaveClub(Long userInfoId, Long clubId) {
         log.debug("leaveClub: starting for userInfoId={} clubId={}", userInfoId, clubId);
-        Club club = clubRepository.findByIdAndRecordStatusTrue(clubId)
+        clubRepository.findByIdAndRecordStatusTrue(clubId)
                 .orElseThrow(() -> new CustomExceptions("Club no encontrado o inactivo", 404));
 
         Student student = studentRepository.findByUserInfo_IdAndRecordStatusTrue(userInfoId)
@@ -112,10 +116,59 @@ public class StudentClubServiceImpl implements StudentClubService {
             cm.setRecordStatus(false);
             clubMemberRepository.save(cm);
             log.debug("leaveClub: membership deactivated studentId={} clubId={} membershipId={}", student.getId(), clubId, cm.getId());
-            return;
         } else {
             log.warn("leaveClub: membership not found for studentId={} clubId={}", student.getId(), clubId);
             throw new CustomExceptions("El estudiante no está inscrito en el club", 400);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ClubAdminDto> findClubsByUserInfoId(Long userInfoId) {
+        log.debug("findClubsByUserInfoId: start userInfoId={}", userInfoId);
+        Student student = studentRepository.findByUserInfo_IdAndRecordStatusTrue(userInfoId)
+                .orElseThrow(() -> new CustomExceptions("Estudiante no encontrado o inactivo", 404));
+
+        List<ClubMember> memberships = clubMemberRepository.findAllByStudentIdAndRecordStatusTrue(student.getId());
+
+        List<ClubAdminDto> clubs = memberships.stream()
+                .map(ClubMember::getClub)
+                .map(this::toClubAdminDto)
+                .toList();
+
+        log.debug("findClubsByUserInfoId: returning {} clubs for userInfoId={}", clubs.size(), userInfoId);
+        return clubs;
+    }
+
+    private ClubAdminDto toClubAdminDto(Club club) {
+        if (club == null) return null;
+
+        Set<Long> reasonIds = club.getReasons() == null ? Set.of() : club.getReasons().stream().map(com.especlub.match.models.ClubReason::getId).collect(Collectors.toSet());
+        Set<String> reasonNames = club.getReasons() == null ? Set.of() : club.getReasons().stream().map(com.especlub.match.models.ClubReason::getName).collect(Collectors.toSet());
+
+        Set<Long> interestIds = club.getInterests() == null ? Set.of() : club.getInterests().stream().map(com.especlub.match.models.Interest::getId).collect(Collectors.toSet());
+        Set<String> interestNames = club.getInterests() == null ? Set.of() : club.getInterests().stream().map(com.especlub.match.models.Interest::getName).collect(Collectors.toSet());
+
+        Set<Long> softIds = club.getDesiredSoftSkills() == null ? Set.of() : club.getDesiredSoftSkills().stream().map(com.especlub.match.models.SoftSkill::getId).collect(Collectors.toSet());
+        Set<String> softNames = club.getDesiredSoftSkills() == null ? Set.of() : club.getDesiredSoftSkills().stream().map(com.especlub.match.models.SoftSkill::getName).collect(Collectors.toSet());
+
+        return ClubAdminDto.builder()
+                .id(club.getId())
+                .name(club.getName())
+                .description(club.getDescription())
+                .capacity(club.getCapacity())
+                .reasonIds(reasonIds)
+                .reasonNames(reasonNames)
+                .interestIds(interestIds)
+                .interestNames(interestNames)
+                .desiredSoftSkillIds(softIds)
+                .desiredSoftSkillNames(softNames)
+                .clubTypeId(club.getClubType() == null ? null : club.getClubType().getId())
+                .clubTypeName(club.getClubType() == null ? null : club.getClubType().getName())
+                .whatsappGroupLink(club.getWhatsappGroupLink())
+                .recordStatus(club.getRecordStatus())
+                .createdAt(club.getCreatedAt())
+                .updatedAt(club.getUpdatedAt())
+                .build();
     }
 }

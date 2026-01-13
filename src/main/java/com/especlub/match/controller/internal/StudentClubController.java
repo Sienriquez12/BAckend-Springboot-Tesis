@@ -1,6 +1,7 @@
 package com.especlub.match.controller.internal;
 
 import com.especlub.match.docs.StudentClubControllerDoc;
+import com.especlub.match.dto.response.ClubAdminDto;
 import com.especlub.match.dto.response.JsonDtoResponse;
 import com.especlub.match.models.UserInfo;
 import com.especlub.match.services.impl.AuthServiceImpl;
@@ -9,10 +10,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/clubs")
@@ -23,6 +23,16 @@ public class StudentClubController implements StudentClubControllerDoc {
     private final StudentClubService studentClubService;
 
     private final AuthServiceImpl authService;
+
+    @GetMapping("/my")
+    public ResponseEntity<JsonDtoResponse<List<ClubAdminDto>>> myClubs(HttpServletRequest request) {
+        UserInfo currentUser = authService.validateUserJWT(request);
+        Long userInfoId = currentUser.getId();
+        log.debug("myClubs: userInfoId={}", userInfoId);
+        List<ClubAdminDto> clubs = studentClubService.findClubsByUserInfoId(userInfoId);
+        log.debug("myClubs: returned {} clubs for userInfoId={}", clubs == null ? 0 : clubs.size(), userInfoId);
+        return JsonDtoResponse.ok("Clubs del usuario obtenidos", clubs).toResponseEntity();
+    }
 
     @PostMapping("/{clubId}/enroll")
     public ResponseEntity<JsonDtoResponse<String>> enroll(@PathVariable Long clubId, HttpServletRequest request) {
