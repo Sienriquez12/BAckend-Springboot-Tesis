@@ -20,7 +20,7 @@ public class CorsConfig {
                                 "https://especlubsmatch.app",
                                 "https://www.especlubsmatch.app"
                         )
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedMethods("GET", "PATCH", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .exposedHeaders("Set-Cookie")
                         .allowCredentials(true);
