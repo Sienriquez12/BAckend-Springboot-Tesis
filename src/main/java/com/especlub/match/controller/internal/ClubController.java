@@ -31,4 +31,6 @@ public class ClubController implements ClubControllerDoc {
         ClubAdminDto dto = adminClubService.getById(id);
         return JsonDtoResponse.ok("Club obtenido", dto).toResponseEntity();
     }
+
+    // todo: publciar tipo de clubs 
 }

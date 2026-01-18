@@ -4,6 +4,7 @@ import com.especlub.match.dto.request.CreateClubRequestDto;
 import com.especlub.match.dto.request.UpdateClubRequestDto;
 import com.especlub.match.dto.response.ClubAdminDto;
 import com.especlub.match.dto.response.ClubMemberAdminDto;
+import com.especlub.match.dto.response.ClubSummaryDto;
 import com.especlub.match.models.Club;
 import com.especlub.match.models.ClubMember;
 import com.especlub.match.models.ClubReason;
@@ -130,6 +131,19 @@ public class AdminClubServiceImpl implements AdminClubService {
                 else if (email != null) full = email;
             }
 
+            // build list of clubs that this student belongs to (ClubSummaryDto)
+            List<ClubSummaryDto> clubs = null;
+            if (cm.getStudent() != null && cm.getStudent().getMemberships() != null) {
+                clubs = cm.getStudent().getMemberships().stream()
+                        .filter(m -> m.getClub() != null)
+                        .map(m -> ClubSummaryDto.builder()
+                                .id(m.getClub().getId())
+                                .name(m.getClub().getName())
+                                .recordStatus(m.getClub().getRecordStatus())
+                                .build())
+                        .toList();
+            }
+
             return ClubMemberAdminDto.builder()
                     .membershipId(cm.getId())
                     .studentId(cm.getStudent() != null ? cm.getStudent().getId() : null)
@@ -138,6 +152,7 @@ public class AdminClubServiceImpl implements AdminClubService {
                     .fullName(full)
                     .recordStatus(cm.getRecordStatus())
                     .joinedAt(cm.getCreatedAt())
+                    .clubs(clubs)
                     .build();
         }).toList();
     }
@@ -175,6 +190,12 @@ public class AdminClubServiceImpl implements AdminClubService {
                 .interestNames(interestNames)
                 .desiredSoftSkillIds(skillIds)
                 .desiredSoftSkillNames(skillNames)
+                .clubTypeId(club.getClubType() == null ? null : club.getClubType().getId())
+                .clubTypeName(club.getClubType() == null ? null : club.getClubType().getName())
+                .whatsappGroupLink(club.getWhatsappGroupLink())
+                .recordStatus(club.getRecordStatus())
+                .createdAt(club.getCreatedAt())
+                .updatedAt(club.getUpdatedAt())
                 .build();
     }
 }

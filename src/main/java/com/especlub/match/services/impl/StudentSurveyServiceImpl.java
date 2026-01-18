@@ -77,7 +77,6 @@ public class StudentSurveyServiceImpl implements StudentSurveyService {
 
         StudentSurvey survey = StudentSurvey.builder()
                 .student(student)
-                .surveyVersion(dto.getSurveyVersion())
                 .completedAt(LocalDateTime.now())
                 .createdAt(LocalDateTime.now())
                 .build();

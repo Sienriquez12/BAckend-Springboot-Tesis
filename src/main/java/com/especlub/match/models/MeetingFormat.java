@@ -38,9 +38,9 @@ public enum MeetingFormat {
         String normalized = removeAccents(value.trim().toLowerCase());
 
         return switch (normalized) {
-            case "presencial" -> PRESENCIAL;
+            case "presential", "presencial" -> PRESENCIAL;
             case "virtual" -> VIRTUAL;
-            case "hibrido", "híbrido" -> HIBRIDO;
+            case "hibrido", "hybrid", "híbrido" -> HIBRIDO;
             default -> null;
         };
     }
