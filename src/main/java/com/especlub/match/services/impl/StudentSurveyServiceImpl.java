@@ -143,46 +143,6 @@ public class StudentSurveyServiceImpl implements StudentSurveyService {
             student = studentRepository.findByIdAndRecordStatusTrue(studentId).orElse(student);
         }
 
-        // save student preferences if provided
-        if (dto.getPreferences() != null && !dto.getPreferences().isEmpty()) {
-            // remove existing active preferences? For simplicity, just add new ones
-            for (var p : dto.getPreferences()) {
-                com.especlub.match.models.MeetingFormat mf = null;
-                if (p.getPreferredMeetingFormat() != null && !p.getPreferredMeetingFormat().isBlank()) {
-                    // Use the robust fromString converter which normalizes input (accepts "Presencial", "presencial", "Híbrido", etc.)
-                    mf = com.especlub.match.models.MeetingFormat.fromString(p.getPreferredMeetingFormat());
-                    if (mf == null) {
-                        throw new CustomExceptions("Formato de preferredMeetingFormat inválido: " + p.getPreferredMeetingFormat(), 400);
-                    }
-                }
-
-                // Create the preference object directly instead of using builder to avoid type conflicts
-                com.especlub.match.models.StudentPreference pref = new com.especlub.match.models.StudentPreference();
-                pref.setStudent(student);
-                pref.setPreferredClubType(String.valueOf(p.getPreferredClubTypeId()));
-                // resolve preferredClubTypeId (client now sends the ClubType id)
-                if (p.getPreferredClubTypeId() != null) {
-                    ClubType ct = clubTypeRepository.findByIdAndRecordStatusTrue(p.getPreferredClubTypeId()).orElse(null);
-                    if (ct != null) pref.setPreferredClubType(ct.getName());
-                    else pref.setPreferredClubType(p.getPreferredClubTypeId().toString());
-                }
-                pref.setAvoidClubTypes(p.getAvoidClubTypes());
-                pref.setPreferredMeetingFormat(mf);
-                pref.setPriorityWeight(p.getPriorityWeight());
-                pref.setRecordStatus(true);
-                pref.setCreatedAt(java.time.LocalDateTime.now());
-
-                studentPreferenceRepository.save(pref);
-            }
-        }
-
-        // diagnostic logs: sizes of incoming lists
-        log.debug("Saving survey for studentId={} interestsCount={} softSkillsCount={} clubReasonsCount={} preferencesCount={}",
-                studentId,
-                dto.getInterestIds() != null ? dto.getInterestIds().size() : 0,
-                dto.getSoftSkillIds() != null ? dto.getSoftSkillIds().size() : 0,
-                dto.getClubReasonIds() != null ? dto.getClubReasonIds().size() : 0,
-                dto.getPreferences() != null ? dto.getPreferences().size() : 0);
 
         // persist the survey (either newly created or updated)
         StudentSurvey saved = studentSurveyRepository.saveAndFlush(survey);

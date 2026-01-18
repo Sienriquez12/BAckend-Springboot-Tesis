@@ -6,7 +6,7 @@ import java.util.List;
 
 @Data
 public class CreateSurveyRequestDto {
-    private List<Long> interestIds; // Long -- entero
+    private List<Long> interestIds;
     private List<Long> softSkillIds;
     private List<Long> clubReasonIds;
     private Integer weeklyAvailabilityHours;
@@ -17,5 +17,4 @@ public class CreateSurveyRequestDto {
     private String preferredMeetingFormat;
     private Boolean isOpenToNewExperiences;
     private Boolean recommendationOptIn;
-    private List<StudentPreferenceRequestDto> preferences;
 }
