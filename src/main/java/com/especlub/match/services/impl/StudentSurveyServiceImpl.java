@@ -75,11 +75,35 @@ public class StudentSurveyServiceImpl implements StudentSurveyService {
             throw new CustomExceptions("No autorizado para crear encuestas para este estudiante", 403);
         }
 
-        StudentSurvey survey = StudentSurvey.builder()
-                .student(student)
-                .completedAt(LocalDateTime.now())
-                .createdAt(LocalDateTime.now())
-                .build();
+        // If a survey already exists for this student, overwrite it (keep only the latest)
+        StudentSurvey survey;
+        var existing = studentSurveyRepository.findByStudentId(studentId);
+        if (existing.isPresent()) {
+            survey = existing.get();
+            log.debug("saveSurvey: overwriting existing survey id={} for studentId={}", survey.getId(), studentId);
+            // reset fields that will be recalculated
+            survey.setDerivedInterests(null);
+            survey.setDerivedSoftSkills(null);
+            survey.setDerivedClubReasons(null);
+            survey.setCompletedAt(LocalDateTime.now());
+            survey.setUpdatedAt(LocalDateTime.now());
+            // bump numeric surveyVersion if possible
+            String ver = survey.getSurveyVersion();
+            try {
+                int v = ver != null ? Integer.parseInt(ver) : 0;
+                survey.setSurveyVersion(String.valueOf(v + 1));
+            } catch (Exception e) {
+                survey.setSurveyVersion("1");
+            }
+        } else {
+            survey = StudentSurvey.builder()
+                    .student(student)
+                    .completedAt(LocalDateTime.now())
+                    .createdAt(LocalDateTime.now())
+                    .surveyVersion("1")
+                    .build();
+            log.debug("saveSurvey: creating new survey for studentId={}", studentId);
+        }
 
         // Persistir survey (sin llamar al LLM). La recomendación se genera por separado
 
@@ -160,6 +184,7 @@ public class StudentSurveyServiceImpl implements StudentSurveyService {
                 dto.getClubReasonIds() != null ? dto.getClubReasonIds().size() : 0,
                 dto.getPreferences() != null ? dto.getPreferences().size() : 0);
 
+        // persist the survey (either newly created or updated)
         StudentSurvey saved = studentSurveyRepository.saveAndFlush(survey);
         // reload to ensure relationships are initialized (and join tables persisted)
         saved = studentSurveyRepository.findById(saved.getId()).orElse(saved);

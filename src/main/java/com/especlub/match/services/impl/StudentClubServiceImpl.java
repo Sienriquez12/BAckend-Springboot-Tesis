@@ -112,10 +112,19 @@ public class StudentClubServiceImpl implements StudentClubService {
 
         if (membershipOpt.isPresent()) {
             ClubMember cm = membershipOpt.get();
-            // mark as inactive or delete
-            cm.setRecordStatus(false);
-            clubMemberRepository.save(cm);
-            log.debug("leaveClub: membership deactivated studentId={} clubId={} membershipId={}", student.getId(), clubId, cm.getId());
+            // Perform physical deletion of the membership
+            clubMemberRepository.delete(cm);
+
+            // Remove from in-memory collections for consistency
+            if (student.getMemberships() != null) {
+                student.getMemberships().removeIf(m -> m.getId() != null && m.getId().equals(cm.getId()));
+            }
+            Club club = cm.getClub();
+            if (club != null && club.getMembers() != null) {
+                club.getMembers().removeIf(m -> m.getId() != null && m.getId().equals(cm.getId()));
+            }
+
+            log.debug("leaveClub: membership deleted (physical) studentId={} clubId={} membershipId={}", student.getId(), clubId, cm.getId());
         } else {
             log.warn("leaveClub: membership not found for studentId={} clubId={}", student.getId(), clubId);
             throw new CustomExceptions("El estudiante no está inscrito en el club", 400);
