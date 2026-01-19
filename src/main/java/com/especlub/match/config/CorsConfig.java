@@ -18,11 +18,15 @@ public class CorsConfig {
                                 "http://localhost:4200",
                                 "http://localhost:3000",
                                 "https://especlubsmatch.app",
-                                "https://www.especlubsmatch.app"
+                                "https://www.especlubsmatch.app",
+                                // Capacitor Android/iOS (app móvil)
+                                "https://localhost",
+                                "http://localhost",
+                                "capacitor://localhost"
                         )
                         .allowedMethods("GET", "PATCH", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
-                        .exposedHeaders("Set-Cookie")
+                        .exposedHeaders("Set-Cookie", "Authorization")
                         .allowCredentials(true);
             }
         };
