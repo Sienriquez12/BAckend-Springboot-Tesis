@@ -54,7 +54,6 @@ public class AdminEventController implements AdminEventControllerDoc {
         return JsonDtoResponse.ok("Event updated", updated).toResponseEntity();
     }
 
-    // todo: send emails
     @PostMapping("/{id}/notify")
     public ResponseEntity<JsonDtoResponse<Void>> notifyMembers(@PathVariable("id") Long eventId) {
         try {

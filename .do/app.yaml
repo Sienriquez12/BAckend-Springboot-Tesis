@@ -4,5 +4,5 @@ services:
   github:
     branch: main
     deploy_on_push: true
-    repo: Anyel-ec/ackend-Springboot-AprovechaYGana
+    repo: Sienriquez12/BAckend-Springboot-Tesis
   name: sample-springboot

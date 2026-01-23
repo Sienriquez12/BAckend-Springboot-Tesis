@@ -5,21 +5,24 @@ import com.especlub.match.repositories.SystemParametersRepository;
 import com.especlub.match.services.interfaces.OtpService;
 import com.especlub.match.shared.enums.CatalogEnums;
 import com.especlub.match.shared.exceptions.CustomExceptions;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.Random;
+import java.security.SecureRandom;
 
 @Service
 @RequiredArgsConstructor
 public class OtpServiceImpl implements OtpService {
     private final SystemParametersRepository systemParametersRepository;
-    private final Random random = new Random();
+    // Use SecureRandom for cryptographic safety rather than java.util.Random.
+    // SecureRandom is suitable for generating one-time PINs and is thread-safe.
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     public String generatePin() {
-        return String.format("%06d", random.nextInt(999999));
+        // Use bound 1_000_000 to include 0..999_999 (six digits).
+        int pin = SECURE_RANDOM.nextInt(1_000_000);
+        return String.format("%06d", pin);
     }
 
     public int getPinExpireMinutes() {

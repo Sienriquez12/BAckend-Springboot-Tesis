@@ -32,5 +32,4 @@ public class ClubController implements ClubControllerDoc {
         return JsonDtoResponse.ok("Club obtenido", dto).toResponseEntity();
     }
 
-    // todo: publciar tipo de clubs 
 }

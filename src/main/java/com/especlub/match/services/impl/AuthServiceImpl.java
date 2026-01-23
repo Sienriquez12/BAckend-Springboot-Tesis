@@ -105,7 +105,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (user == null) {
             message = "Usuario no encontrado";
-            throw new UsernameNotFoundException(message);
+            throw new CustomExceptions(message, 404);
         }
         return (user);
     }
