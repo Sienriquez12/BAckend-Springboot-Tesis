@@ -7,7 +7,7 @@ import com.especlub.match.dto.response.EventAdminDto;
 import java.util.List;
 
 public interface AdminEventService {
-    EventAdminDto create(CreateEventRequestDto dto);
+    EventAdminDto create(CreateEventRequestDto dto, Long createdByUserInfoId);
     EventAdminDto findById(Long id);
     List<EventAdminDto> findAllActiveByUser(String jwt);
     List<EventAdminDto> findAllActive();

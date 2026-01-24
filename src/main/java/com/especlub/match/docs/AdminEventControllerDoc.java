@@ -14,6 +14,7 @@ import com.especlub.match.dto.response.EventAdminDto;
 import com.especlub.match.dto.response.JsonDtoResponse;
 
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Tag(name = "Admin Events", description = "Operaciones administrativas sobre eventos")
 public interface AdminEventControllerDoc {
@@ -27,7 +28,7 @@ public interface AdminEventControllerDoc {
             @ApiResponse(responseCode = "403", description = "Prohibido"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    ResponseEntity<JsonDtoResponse<EventAdminDto>> create(@Valid @org.springframework.web.bind.annotation.RequestBody CreateEventRequestDto dto);
+    ResponseEntity<JsonDtoResponse<EventAdminDto>> create(HttpServletRequest request, @Valid @org.springframework.web.bind.annotation.RequestBody CreateEventRequestDto dto);
 
     @Operation(summary = "Notificar asistentes a un evento", description = "Encola notificaciones para los miembros asociados al evento especificado por ID")
     @ApiResponses({

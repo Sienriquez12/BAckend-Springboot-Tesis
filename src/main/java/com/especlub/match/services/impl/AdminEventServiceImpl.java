@@ -42,11 +42,11 @@ public class AdminEventServiceImpl implements AdminEventService {
 
     @Override
     @Transactional
-    public EventAdminDto create(CreateEventRequestDto dto) {
+    public EventAdminDto create(CreateEventRequestDto dto, Long createdByUserInfoId) {
         Club club = clubRepository.findByIdAndRecordStatusTrue(dto.getClubId())
                 .orElseThrow(() -> new CustomExceptions("Club not found or inactive", 404));
 
-        UserInfo creator = userInfoRepository.findByIdAndRecordStatusTrue(dto.getCreatedByUserInfoId())
+        UserInfo creator = userInfoRepository.findByIdAndRecordStatusTrue(createdByUserInfoId)
                 .orElseThrow(() -> new CustomExceptions("Creator user not found or inactive", 404));
 
         if (dto.getEndAt() != null && dto.getEndAt().isBefore(dto.getStartAt())) {

@@ -7,8 +7,10 @@ import com.especlub.match.dto.response.EventAdminDto;
 import com.especlub.match.dto.response.JsonDtoResponse;
 import com.especlub.match.services.interfaces.AdminEventService;
 import com.especlub.match.services.interfaces.EventNotificationService;
+import com.especlub.match.services.interfaces.AuthService;
 import com.especlub.match.shared.utils.RolePermissions;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -28,10 +30,16 @@ public class AdminEventController implements AdminEventControllerDoc {
 
     private final AdminEventService adminEventService;
     private final EventNotificationService eventNotificationService;
+    private final AuthService authService;
 
     @PostMapping
-    public ResponseEntity<JsonDtoResponse<EventAdminDto>> create(@Valid @RequestBody CreateEventRequestDto dto) {
-        EventAdminDto created = adminEventService.create(dto);
+    public ResponseEntity<JsonDtoResponse<EventAdminDto>> create(HttpServletRequest request, @Valid @RequestBody CreateEventRequestDto dto) {
+        // extract current user from cookie/JWT
+        com.especlub.match.models.UserInfo currentUser = authService.validateUserJWT(request);
+        Long userInfoId = currentUser.getId();
+        log.info("El usuario es: {}", currentUser.getUsername());
+
+        EventAdminDto created = adminEventService.create(dto, userInfoId);
         return JsonDtoResponse.created("Evento creado", created).toResponseEntity();
     }
 

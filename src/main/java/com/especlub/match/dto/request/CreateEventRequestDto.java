@@ -32,6 +32,5 @@ public class CreateEventRequestDto {
     @NotNull(message = "El ID del club es obligatorio")
     private Long clubId;
 
-    @NotNull(message = "El ID del usuario que crea el evento es obligatorio")
-    private Long createdByUserInfoId;
+    // creator will be inferred from the authenticated user (cookie/JWT) on the server side
 }

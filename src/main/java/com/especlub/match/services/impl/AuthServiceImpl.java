@@ -4,9 +4,11 @@ import com.especlub.match.dto.request.*;
 import com.especlub.match.models.UserInfo;
 import com.especlub.match.models.UserPin;
 import com.especlub.match.models.UserRole;
+import com.especlub.match.models.Student;
 import com.especlub.match.repositories.UserInfoRepository;
 import com.especlub.match.repositories.UserPinRepository;
 import com.especlub.match.repositories.UserRoleRepository;
+import com.especlub.match.repositories.StudentRepository;
 import com.especlub.match.security.jwt.JwtProvider;
 import com.especlub.match.services.interfaces.AuthService;
 import com.especlub.match.services.interfaces.EmailService;
@@ -22,7 +24,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 
 @Slf4j
@@ -53,6 +55,7 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final UserPinRepository userPinRepository;
     private final OtpService otpService;
+    private final StudentRepository studentRepository;
 
 
     // declarate variables
@@ -310,6 +313,29 @@ public class AuthServiceImpl implements AuthService {
         user.setUpdatedAt(java.time.LocalDateTime.now());
         userRepository.save(user);
 
+        // If the activated user has ROLE_STUDENT, ensure there is a linked Student record.
+        try {
+            boolean hasStudentRole = user.getRoles() != null && user.getRoles().stream().anyMatch(r -> "ROLE_STUDENT".equals(r.getName()));
+            if (hasStudentRole) {
+                Optional<Student> existing = studentRepository.findByUserInfo_IdAndRecordStatusTrue(user.getId());
+                if (existing.isEmpty()) {
+                    Student student = Student.builder()
+                            .userInfo(user)
+                            .recordStatus(true)
+                            .createdAt(LocalDateTime.now())
+                            .updatedAt(LocalDateTime.now())
+                            .build();
+                    studentRepository.save(student);
+                    log.info("Created Student record for userInfoId={}", user.getId());
+                } else {
+                    log.info("Student already exists for userInfoId={}", user.getId());
+                }
+            }
+        } catch (Exception ex) {
+            // Don't block activation due to student creation failure; log and continue
+            log.error("Error creating Student for userInfoId={}: {}", user.getId(), ex.getMessage(), ex);
+        }
+
         Map<String, Object> variables = new java.util.HashMap<>();
         variables.put("email", user.getEmail());
         variables.put(VAR_USERNAME, user.getUsername());
@@ -341,7 +367,7 @@ public class AuthServiceImpl implements AuthService {
     private void findValidRecoveryPinOrThrow(UserInfo user, String pin, boolean markAsUsed) {
         UserPin userPin = userPinRepository.findByUserAndPinAndPurpose(user, pin, OtpPurpose.RECOVERY.name()).orElse(null);
         if (userPin == null || userPin.getUsed() || userPin.getExpiresAt().isBefore(java.time.LocalDateTime.now())) {
-            throw new CustomExceptions("El PIN es inválido, ya fue usado o ha expirado", org.springframework.http.HttpStatus.BAD_REQUEST.value());
+            throw new CustomExceptions("El PIN es inválido, ya fue usado o ha expirado", HttpStatus.BAD_REQUEST.value());
         }
         if (markAsUsed) {
             userPin.setUsed(true);
