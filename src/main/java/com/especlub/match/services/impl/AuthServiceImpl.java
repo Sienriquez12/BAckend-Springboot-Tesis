@@ -1,6 +1,7 @@
 package com.especlub.match.services.impl;
 
 import com.especlub.match.dto.request.*;
+import com.especlub.match.dto.response.UserInfoDto;
 import com.especlub.match.models.UserInfo;
 import com.especlub.match.models.UserPin;
 import com.especlub.match.models.UserRole;
@@ -374,5 +375,20 @@ public class AuthServiceImpl implements AuthService {
             userPin.setUsedAt(java.time.LocalDateTime.now());
             userPinRepository.save(userPin);
         }
+    }
+
+    @Override
+    public UserInfoDto getUserInfoById(Long id) {
+        UserInfo userInfo = userRepository.findById(id).orElse(null);
+        if (userInfo == null) {
+            return null;
+        }
+        return UserInfoDto.builder()
+                .id(userInfo.getId())
+                .username(userInfo.getUsername())
+                .email(userInfo.getEmail())
+                .names(userInfo.getNames())
+                .surnames(userInfo.getSurnames())
+                .build();
     }
 }

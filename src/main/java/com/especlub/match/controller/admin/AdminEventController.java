@@ -5,6 +5,7 @@ import com.especlub.match.dto.request.CreateEventRequestDto;
 import com.especlub.match.dto.request.UpdateEventRequestDto;
 import com.especlub.match.dto.response.EventAdminDto;
 import com.especlub.match.dto.response.JsonDtoResponse;
+import com.especlub.match.dto.response.UserInfoDto;
 import com.especlub.match.services.interfaces.AdminEventService;
 import com.especlub.match.services.interfaces.EventNotificationService;
 import com.especlub.match.services.interfaces.AuthService;
@@ -46,6 +47,12 @@ public class AdminEventController implements AdminEventControllerDoc {
     @GetMapping
     public ResponseEntity<JsonDtoResponse<List<EventAdminDto>>> listAllActive() {
         List<EventAdminDto> events = adminEventService.findAllActive();
+        events.forEach(event -> {
+            if (event.getCreatedByUserInfo() != null) {
+                UserInfoDto userInfo = authService.getUserInfoById(event.getCreatedByUserInfo().getId());
+                event.setCreatedByUserInfo(userInfo);
+            }
+        });
         return JsonDtoResponse.ok("Events retrieved", events).toResponseEntity();
     }
 
@@ -53,6 +60,10 @@ public class AdminEventController implements AdminEventControllerDoc {
     public ResponseEntity<JsonDtoResponse<EventAdminDto>> getById(@PathVariable Long id) {
         EventAdminDto dto = adminEventService.findById(id);
         if (dto == null) return JsonDtoResponse.<EventAdminDto>notFound("Event not found").toResponseEntity();
+        if (dto.getCreatedByUserInfo() != null) {
+            UserInfoDto userInfo = authService.getUserInfoById(dto.getCreatedByUserInfo().getId());
+            dto.setCreatedByUserInfo(userInfo);
+        }
         return JsonDtoResponse.ok("Event retrieved", dto).toResponseEntity();
     }
 

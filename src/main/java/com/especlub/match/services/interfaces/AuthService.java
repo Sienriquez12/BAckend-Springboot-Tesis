@@ -1,6 +1,7 @@
 package com.especlub.match.services.interfaces;
 
 import com.especlub.match.dto.request.*;
+import com.especlub.match.dto.response.UserInfoDto;
 import com.especlub.match.models.UserInfo;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,4 +17,5 @@ public interface AuthService {
     boolean updatePasswordWithPin(PasswordUpdateWithPinRequestDto dto);
     boolean updatePasswordInternal(PasswordUpdateInternalRequestDto dto, String jwtToken);
     boolean activateUserWithPin(ActivationRequestDto activationRequestDto);
+    UserInfoDto getUserInfoById(Long id);
 }

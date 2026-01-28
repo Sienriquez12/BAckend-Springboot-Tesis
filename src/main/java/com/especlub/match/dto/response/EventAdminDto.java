@@ -20,7 +20,7 @@ public class EventAdminDto {
     private String location;
     private String virtualLink;
     private Long clubId;
-    private Long createdByUserInfoId;
+    private UserInfoDto createdByUserInfo; // Updated to include full user info
     private Boolean recordStatus;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
