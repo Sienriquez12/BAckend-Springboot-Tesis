@@ -13,6 +13,6 @@ public class UserInfoDto {
     private Long id;
     private String username;
     private String email;
-    private String names; // First name(s) of the user
-    private String surnames; // Last name(s) of the user
+    private String names;     // first names / given names
+    private String surnames;  // last names / family names
 }

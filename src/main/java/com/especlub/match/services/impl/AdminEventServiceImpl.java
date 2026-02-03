@@ -3,6 +3,7 @@ package com.especlub.match.services.impl;
 import com.especlub.match.dto.request.CreateEventRequestDto;
 import com.especlub.match.dto.request.UpdateEventRequestDto;
 import com.especlub.match.dto.response.EventAdminDto;
+import com.especlub.match.dto.response.UserInfoDto;
 import com.especlub.match.models.Club;
 import com.especlub.match.models.Event;
 import com.especlub.match.models.UserInfo;
@@ -23,8 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.LinkedHashMap;
+import java.util.Objects;
 
 import org.springframework.http.HttpStatus;
 
@@ -99,8 +100,8 @@ public class AdminEventServiceImpl implements AdminEventService {
             List<ClubMember> memberships = clubMemberRepository.findAllByStudentIdAndRecordStatusTrue(student.getId());
             memberClubIds = memberships.stream()
                     .map(cm -> cm.getClub() != null ? cm.getClub().getId() : null)
-                    .filter(id -> id != null)
-                    .collect(Collectors.toList());
+                    .filter(Objects::nonNull)
+                    .toList();
             log.debug("findAllActiveByUser: memberships count={}, clubIds={}", memberships.size(), memberClubIds);
         } else {
             log.debug("findAllActiveByUser: no student record for userInfoId={}", user.getId());
@@ -121,7 +122,7 @@ public class AdminEventServiceImpl implements AdminEventService {
             map.putIfAbsent(e.getId(), e);
         }
 
-        List<Event> merged = map.values().stream().collect(Collectors.toList());
+        List<Event> merged = map.values().stream().toList();
 
         log.debug("findAllActiveByUser: merged events count={}", merged.size());
 
@@ -175,10 +176,22 @@ public class AdminEventServiceImpl implements AdminEventService {
                 .location(e.getLocation())
                 .virtualLink(e.getVirtualLink())
                 .clubId(e.getClub() != null ? e.getClub().getId() : null)
-                .createdByUserInfoId(e.getCreatedBy() != null ? e.getCreatedBy().getId() : null)
+                .createdByUserInfo(toUserInfoDto(e.getCreatedBy()))
                 .recordStatus(e.getRecordStatus())
                 .createdAt(e.getCreatedAt())
                 .updatedAt(e.getUpdatedAt())
+                .build();
+    }
+
+    // Helper to map UserInfo entity to UserInfoDto
+    private UserInfoDto toUserInfoDto(UserInfo u) {
+        if (u == null) return null;
+        return UserInfoDto.builder()
+                .id(u.getId())
+                .username(u.getUsername())
+                .email(u.getEmail())
+                .names(u.getNames())
+                .surnames(u.getSurnames())
                 .build();
     }
 }

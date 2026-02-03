@@ -2,8 +2,6 @@ package com.especlub.match.services.impl;
 
 
 import com.especlub.match.dto.response.EventAdminDto;
-import com.especlub.match.dto.response.JsonDtoResponse;
-import com.especlub.match.repositories.UserInfoRepository;
 import com.especlub.match.services.interfaces.AdminEventService;
 import com.especlub.match.services.interfaces.ClubMemberService;
 import com.especlub.match.services.interfaces.EmailServiceAsync;
@@ -26,7 +24,6 @@ public class EventNotificationServiceImpl implements EventNotificationService {
     private static final Logger log = LoggerFactory.getLogger(EventNotificationServiceImpl.class);
 
     private final EmailServiceAsync emailServiceAsync;
-    private final UserInfoRepository userInfoRepository;
     private final AdminEventService adminEventService;
     private final ClubMemberService clubMemberService;
 
@@ -100,19 +97,14 @@ public class EventNotificationServiceImpl implements EventNotificationService {
         vars.put("eventTime", startAt != null ? startAt.format(TIME_FMT) : "Por definir");
 
         String organizerName = "Organizador";
-        Long creatorId = eventDto.getCreatedByUserInfoId();
-        if (creatorId != null) {
-            organizerName = userInfoRepository.findByIdAndRecordStatusTrue(creatorId)
-                    .map(u -> {
-                        String first = safeTrim(u.getNames());
-                        String last = safeTrim(u.getSurnames());
-                        String full = (first + " " + last).trim();
-                        if (!full.isEmpty()) return full;
-                        if (u.getUsername() != null && !u.getUsername().isBlank()) return u.getUsername();
-                        if (u.getEmail() != null && !u.getEmail().isBlank()) return u.getEmail();
-                        return "Organizador";
-                    })
-                    .orElse("Organizador");
+        // Use createdByUserInfo DTO when available
+        if (eventDto.getCreatedByUserInfo() != null) {
+            String first = safeTrim(eventDto.getCreatedByUserInfo().getNames());
+            String last = safeTrim(eventDto.getCreatedByUserInfo().getSurnames());
+            String full = (first + " " + last).trim();
+            if (!full.isEmpty()) organizerName = full;
+            else if (eventDto.getCreatedByUserInfo().getUsername() != null && !eventDto.getCreatedByUserInfo().getUsername().isBlank()) organizerName = eventDto.getCreatedByUserInfo().getUsername();
+            else if (eventDto.getCreatedByUserInfo().getEmail() != null && !eventDto.getCreatedByUserInfo().getEmail().isBlank()) organizerName = eventDto.getCreatedByUserInfo().getEmail();
         }
         vars.put("organizerName", organizerName);
 
