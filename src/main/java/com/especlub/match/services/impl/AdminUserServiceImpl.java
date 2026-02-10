@@ -3,10 +3,8 @@ package com.especlub.match.services.impl;
 import com.especlub.match.dto.request.CreateUserRequestDto;
 import com.especlub.match.dto.request.UpdateUserRequestDto;
 import com.especlub.match.dto.request.UserAdminDto;
-import com.especlub.match.models.UserInfo;
-import com.especlub.match.models.UserRole;
-import com.especlub.match.repositories.UserInfoRepository;
-import com.especlub.match.repositories.UserRoleRepository;
+import com.especlub.match.models.*;
+import com.especlub.match.repositories.*;
 import com.especlub.match.services.interfaces.AdminUserService;
 import com.especlub.match.shared.exceptions.CustomExceptions;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +25,13 @@ public class AdminUserServiceImpl implements AdminUserService {
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // nuevos repos
+    private final ClubRepository clubRepository;
+    private final StudentRepository studentRepository;
+    private final ClubMemberRepository clubMemberRepository;
+
     private static final String USER_NOT_FOUND_MSG = "User not found";
+    private static final String ROLE_PRESIDENT_NAME = "ROLE_PRESIDENT";
 
     @Override
     @Transactional(readOnly = true)
@@ -78,6 +83,12 @@ public class AdminUserServiceImpl implements AdminUserService {
             inactiveByEmail.setAcceptTerms(true);
             inactiveByEmail.setFirstLogin(false);
             UserInfo saved = userRepository.save(inactiveByEmail);
+
+            // si se asignó role de presidente y viene clubId, asignar como presidente
+            if (ROLE_PRESIDENT_NAME.equals(role.getName()) && dto.getClubId() != null) {
+                assignPresidentToClub(saved.getId(), dto.getClubId());
+            }
+
             return toDto(saved);
         }
 
@@ -100,6 +111,11 @@ public class AdminUserServiceImpl implements AdminUserService {
             inactiveByUsername.setFirstLogin(false);
 
             UserInfo saved = userRepository.save(inactiveByUsername);
+
+            if (ROLE_PRESIDENT_NAME.equals(role.getName()) && dto.getClubId() != null) {
+                assignPresidentToClub(saved.getId(), dto.getClubId());
+            }
+
             return toDto(saved);
         }
 
@@ -120,6 +136,12 @@ public class AdminUserServiceImpl implements AdminUserService {
         user.setAcceptTerms(true);
         user.setFirstLogin(false);
         UserInfo saved = userRepository.save(user);
+
+        // si se asignó role de presidente y viene clubId, asignar como presidente
+        if (ROLE_PRESIDENT_NAME.equals(role.getName()) && dto.getClubId() != null) {
+            assignPresidentToClub(saved.getId(), dto.getClubId());
+        }
+
         return toDto(saved);
     }
 
@@ -137,6 +159,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         }
 
         // Handle role updates: null -> no change; empty list -> clear roles; otherwise set to provided roles
+        boolean assignedPresident = false;
         if (dto.getRoleIds() != null) {
             List<Long> roleIds = dto.getRoleIds();
             if (roleIds.isEmpty()) {
@@ -147,10 +170,39 @@ public class AdminUserServiceImpl implements AdminUserService {
                     throw new CustomExceptions("One or more roles not found or inactive", 404);
                 }
                 user.setRoles(roles);
+                // comprobar si entre los roles está ROLE_PRESIDENT
+                assignedPresident = roles.stream().anyMatch(r -> ROLE_PRESIDENT_NAME.equals(r.getName()));
             }
         }
 
         UserInfo saved = userRepository.save(user);
+
+        // Si hubo un cambio de roles y ahora NO tiene ROLE_PRESIDENT -> quitar presidencias previas
+        if (dto.getRoleIds() != null && !assignedPresident) {
+            // intentar localizar student y limpiar isPresident en sus memberships
+            Optional<Student> maybeStudent = studentRepository.findByUserInfo_IdAndRecordStatusTrue(saved.getId());
+            if (maybeStudent.isPresent()) {
+                Student st = maybeStudent.get();
+                List<ClubMember> memberships = clubMemberRepository.findAllByStudentIdAndRecordStatusTrue(st.getId());
+                for (ClubMember cm : memberships) {
+                    if (Boolean.TRUE.equals(cm.getIsPresident())) {
+                        cm.setIsPresident(false);
+                        clubMemberRepository.save(cm);
+                    }
+                }
+            }
+        }
+
+         // si en la edición se asignó role de presidente y se envió clubId
+         // si roleIds fue null (no cambio de roles), mantener roles actuales: si usuario ya tiene ROLE_PRESIDENT y viene clubId -> asignar
+         if (!assignedPresident && dto.getRoleIds() == null) {
+             assignedPresident = saved.getRoles() != null && saved.getRoles().stream().anyMatch(r -> ROLE_PRESIDENT_NAME.equals(r.getName()));
+         }
+
+         if (assignedPresident && dto.getClubId() != null) {
+             assignPresidentToClub(saved.getId(), dto.getClubId());
+         }
+
         return toDto(saved);
     }
 
@@ -182,5 +234,46 @@ public class AdminUserServiceImpl implements AdminUserService {
                 .dateOfBirth(u.getBirthDate())
                 .roles(roleNames)
                 .build();
+    }
+
+    // Helper para asignar presidente a un club, garantizando un solo presidente por club
+    private void assignPresidentToClub(Long userInfoId, Long clubId) {
+        // encontrar el club activo
+        var club = clubRepository.findByIdAndRecordStatusTrue(clubId)
+                .orElseThrow(() -> new CustomExceptions("Club not found or inactive", 404));
+
+        // obtener (o crear) el student asociado al userInfo
+        Student student = studentRepository.findByUserInfo_IdAndRecordStatusTrue(userInfoId)
+                .orElseGet(() -> {
+                    Student s = Student.builder().userInfo(userRepository.findById(userInfoId).orElseThrow(() -> new CustomExceptions("User not found", 404))).recordStatus(true).build();
+                    return studentRepository.save(s);
+                });
+
+        // buscar presidente actual
+        Optional<ClubMember> currentPres = clubMemberRepository.findPresidentByClubId(clubId);
+        if (currentPres.isPresent()) {
+            ClubMember prev = currentPres.get();
+            if (!prev.getStudent().getId().equals(student.getId())) {
+                prev.setIsPresident(false);
+                clubMemberRepository.save(prev);
+            }
+        }
+
+        // buscar o crear membresía del student en el club
+        Optional<ClubMember> membershipOpt = clubMemberRepository.findByClubIdAndStudentIdAndRecordStatusTrue(clubId, student.getId());
+        ClubMember membership;
+        if (membershipOpt.isPresent()) {
+            membership = membershipOpt.get();
+            membership.setIsPresident(true);
+            membership.setRecordStatus(true);
+        } else {
+            membership = ClubMember.builder()
+                    .club(club)
+                    .student(student)
+                    .recordStatus(true)
+                    .isPresident(true)
+                    .build();
+        }
+        clubMemberRepository.save(membership);
     }
 }

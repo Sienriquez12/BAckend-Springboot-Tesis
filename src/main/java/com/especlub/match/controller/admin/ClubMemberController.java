@@ -81,6 +81,7 @@ public class ClubMemberController {
                 .recordStatus(cm.getRecordStatus())
                 .joinedAt(cm.getCreatedAt())
                 .clubs(clubs)
+                .isPresident(Boolean.TRUE.equals(cm.getIsPresident()))
                 .build();
     }
 }

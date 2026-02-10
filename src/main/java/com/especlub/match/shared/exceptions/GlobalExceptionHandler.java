@@ -150,8 +150,22 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(TransactionSystemException.class)
-    public ResponseEntity<JsonDtoResponse<Object>> handleTransactionSystemException(TransactionSystemException ex) {
+    public ResponseEntity handleTransactionSystemException(TransactionSystemException ex) {
         log.error("ERROR DE TRANSACCIÓN ===>", ex);
+        // Desempaquetar causas anidadas para buscar una ConstraintViolationException (validación a nivel de entidad)
+        Throwable t = ex;
+        while (t != null && !(t instanceof ConstraintViolationException)) {
+            t = t.getCause();
+        }
+        if (t instanceof ConstraintViolationException) {
+            // delegar al manejador de ConstraintViolationException ya existente para retornar detalles
+            @SuppressWarnings("unchecked")
+            ResponseEntity<JsonDtoResponse<List<com.especlub.match.shared.exceptions.ValidationErrorDto>>> resp =
+                    handleConstraintViolationException((ConstraintViolationException) t);
+            // el tipo genérico esperado aquí es ResponseEntity<JsonDtoResponse<Object>>; casteamos
+            return resp;
+        }
+
         message = "Error de validación o persistencia durante la transacción. Verifique los datos enviados.";
         return JsonDtoResponse.error(message, HttpStatus.BAD_REQUEST.value(), null).toResponseEntity();
     }

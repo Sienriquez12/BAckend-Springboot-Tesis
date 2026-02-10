@@ -34,4 +34,8 @@ public interface ClubMemberRepository extends JpaRepository<ClubMember, Long> {
     // Nuevo: buscar una membresía activa por club y student
     @Query("select cm from ClubMember cm where cm.club.id = :clubId and cm.student.id = :studentId and cm.recordStatus = true")
     Optional<ClubMember> findByClubIdAndStudentIdAndRecordStatusTrue(@Param("clubId") Long clubId, @Param("studentId") Long studentId);
+
+    // Nuevo: buscar presidente actual (si existe) por club
+    @Query("select cm from ClubMember cm where cm.club.id = :clubId and cm.isPresident = true and cm.recordStatus = true")
+    Optional<ClubMember> findPresidentByClubId(@Param("clubId") Long clubId);
 }

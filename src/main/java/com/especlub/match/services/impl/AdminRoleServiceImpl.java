@@ -24,6 +24,15 @@ public class AdminRoleServiceImpl implements AdminRoleService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<UserRole> listAllByMinHierarchy(Integer minHierarchy) {
+        if (minHierarchy == null) {
+            return listAllActive();
+        }
+        return userRoleRepository.findAllByHierarchyGreaterThanEqualAndRecordStatusTrue(minHierarchy);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public UserRole getById(Long id) {
         return userRoleRepository.findByIdAndRecordStatusTrue(id)
                 .orElseThrow(() -> new CustomExceptions("Role not found", 404));

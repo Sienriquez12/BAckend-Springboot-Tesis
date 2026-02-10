@@ -85,6 +85,7 @@ public class StudentClubController implements StudentClubControllerDoc {
                         .clubId(c.getId())
                         .club(c)
                         .members(adminClubService.listMembers(c.getId()))
+                        .president(adminClubService.getPresidentByClubId(c.getId()))
                         .build())
                 .toList();
 

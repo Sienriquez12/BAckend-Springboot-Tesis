@@ -16,4 +16,7 @@ public interface AdminClubService {
 
     // Lista miembros activos de un club
     List<ClubMemberAdminDto> listMembers(Long clubId);
+
+    // Nuevo: obtener presidente (si existe) como DTO (aditivo)
+    ClubMemberAdminDto getPresidentByClubId(Long clubId);
 }

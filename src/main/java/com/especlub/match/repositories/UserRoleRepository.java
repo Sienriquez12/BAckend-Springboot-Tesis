@@ -9,7 +9,10 @@ import java.util.List;
 @Repository
 public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
     Optional<UserRole> findByName(String name);
+    Optional<UserRole> findByNameAndRecordStatusTrue(String name);
     Optional<UserRole> findByIdAndRecordStatusTrue(Long id);
     List<UserRole> findAllByRecordStatusTrue();
     List<UserRole> findAllByIdInAndRecordStatusTrue(List<Long> ids);
+    // nuevos métodos para filtrado por jerarquía (mostrar roles con hierarchy >= minHierarchy)
+    List<UserRole> findAllByHierarchyGreaterThanEqualAndRecordStatusTrue(Integer hierarchy);
 }

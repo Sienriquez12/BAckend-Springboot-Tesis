@@ -17,4 +17,5 @@ public class ClubMemberAdminDto {
     private Boolean recordStatus;
     private LocalDateTime joinedAt;
     private List<ClubSummaryDto> clubs;
+    private Boolean isPresident;
 }

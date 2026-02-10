@@ -153,8 +153,51 @@ public class AdminClubServiceImpl implements AdminClubService {
                     .recordStatus(cm.getRecordStatus())
                     .joinedAt(cm.getCreatedAt())
                     .clubs(clubs)
+                    .isPresident(Boolean.TRUE.equals(cm.getIsPresident()))
                     .build();
         }).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ClubMemberAdminDto getPresidentByClubId(Long clubId) {
+        if (clubId == null) return null;
+        var presOpt = clubMemberRepository.findPresidentByClubId(clubId);
+        if (presOpt.isEmpty()) return null;
+        ClubMember cm = presOpt.get();
+        var ui = cm.getUserInfo();
+        String email = ui != null ? ui.getEmail() : null;
+        String names = ui != null ? (ui.getNames() != null ? ui.getNames().trim() : "") : "";
+        String surnames = ui != null ? (ui.getSurnames() != null ? ui.getSurnames().trim() : "") : "";
+        String full = (names + " " + surnames).trim();
+        if (full.isEmpty()) {
+            if (ui != null && ui.getUsername() != null && !ui.getUsername().isBlank()) full = ui.getUsername();
+            else if (email != null) full = email;
+        }
+
+        List<ClubSummaryDto> clubs = null;
+        if (cm.getStudent() != null && cm.getStudent().getMemberships() != null) {
+            clubs = cm.getStudent().getMemberships().stream()
+                    .filter(m -> m.getClub() != null)
+                    .map(m -> ClubSummaryDto.builder()
+                            .id(m.getClub().getId())
+                            .name(m.getClub().getName())
+                            .recordStatus(m.getClub().getRecordStatus())
+                            .build())
+                    .toList();
+        }
+
+        return ClubMemberAdminDto.builder()
+                .membershipId(cm.getId())
+                .studentId(cm.getStudent() != null ? cm.getStudent().getId() : null)
+                .userInfoId(ui != null ? ui.getId() : null)
+                .email(email)
+                .fullName(full)
+                .recordStatus(cm.getRecordStatus())
+                .joinedAt(cm.getCreatedAt())
+                .clubs(clubs)
+                .isPresident(Boolean.TRUE.equals(cm.getIsPresident()))
+                .build();
     }
 
     private ClubAdminDto toDto(Club club) {

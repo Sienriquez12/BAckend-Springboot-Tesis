@@ -14,4 +14,7 @@ public class UpdateUserRequestDto {
     // When present: list of role IDs to set for the user.
     // null -> do not change roles; empty list -> clear roles
     private List<Long> roleIds;
+
+    // Nuevo campo para indicar (al editar) si se asigna como presidente a un club
+    private Long clubId;
 }

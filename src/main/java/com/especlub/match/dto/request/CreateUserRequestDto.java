@@ -16,4 +16,7 @@ public class CreateUserRequestDto {
 
     @NotNull(message = "Role ID is required")
     private Long roleId;
+
+    // Nuevo campo para indicar al crear un presidente a qué club se asigna
+    private Long clubId;
 }

@@ -35,6 +35,11 @@ public class ClubMember {
     @Comment("Estado del registro (activo/inactivo).")
     private Boolean recordStatus;
 
+    // Nuevo: marca si esta membresía corresponde al presidente del club
+    @Column(name = "is_president")
+    @Comment("Indica si este miembro es el presidente del club")
+    private Boolean isPresident;
+
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
