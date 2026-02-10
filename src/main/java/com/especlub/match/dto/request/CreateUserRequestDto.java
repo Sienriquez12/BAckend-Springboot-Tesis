@@ -19,4 +19,7 @@ public class CreateUserRequestDto {
 
     // Nuevo campo para indicar al crear un presidente a qué club se asigna
     private Long clubId;
+
+    // Nuevo: cédula / national id para guardar en UserInfo al crear
+    private String nationalId;
 }

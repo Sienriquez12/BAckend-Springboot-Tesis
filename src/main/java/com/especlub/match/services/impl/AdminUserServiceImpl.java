@@ -75,6 +75,8 @@ public class AdminUserServiceImpl implements AdminUserService {
             inactiveByEmail.setSurnames(dto.getLastName());
             inactiveByEmail.setBirthDate(dto.getDateOfBirth());
             inactiveByEmail.setPassword(passwordEncoder.encode(dto.getPassword()));
+            // guardar nationalId si se proporciona
+            if (dto.getNationalId() != null) inactiveByEmail.setNationalId(dto.getNationalId());
             inactiveByEmail.setRecordStatus(true);
             inactiveByEmail.setRoles(List.of(role));
             inactiveByEmail.setUpdatedAt(LocalDateTime.now());
@@ -102,6 +104,8 @@ public class AdminUserServiceImpl implements AdminUserService {
             inactiveByUsername.setSurnames(dto.getLastName());
             inactiveByUsername.setBirthDate(dto.getDateOfBirth());
             inactiveByUsername.setPassword(passwordEncoder.encode(dto.getPassword()));
+            // guardar nationalId si se proporciona
+            if (dto.getNationalId() != null) inactiveByUsername.setNationalId(dto.getNationalId());
             inactiveByUsername.setRecordStatus(true);
             inactiveByUsername.setRoles(List.of(role));
             inactiveByUsername.setUpdatedAt(LocalDateTime.now());
@@ -127,6 +131,8 @@ public class AdminUserServiceImpl implements AdminUserService {
         user.setNames(dto.getFirstName());
         user.setSurnames(dto.getLastName());
         user.setBirthDate(dto.getDateOfBirth());
+        // nationalId si se proporcionó
+        if (dto.getNationalId() != null) user.setNationalId(dto.getNationalId());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setRecordStatus(true);
         user.setRoles(List.of(role));
@@ -156,6 +162,10 @@ public class AdminUserServiceImpl implements AdminUserService {
         if (dto.getLastName() != null) user.setSurnames(dto.getLastName());
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+        // actualizar nationalId si se proporciona
+        if (dto.getNationalId() != null) {
+            user.setNationalId(dto.getNationalId());
         }
 
         // Handle role updates: null -> no change; empty list -> clear roles; otherwise set to provided roles

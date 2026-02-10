@@ -17,4 +17,7 @@ public class UpdateUserRequestDto {
 
     // Nuevo campo para indicar (al editar) si se asigna como presidente a un club
     private Long clubId;
+
+    // Nuevo: cédula / national id para actualizar
+    private String nationalId;
 }
