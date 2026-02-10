@@ -24,7 +24,7 @@ public class RecommendationClient {
 
     private final RestTemplateBuilder restTemplateBuilder;
 
-    @Value("${external.recommendations.base-url:https://ia-especlubsmatch-p87sg.ondigitalocean.app}")
+    @Value("${external.recommendations.base-url:https://ia-especlubsmatchs-mdoe3.ondigitalocean.app/}")
     private String baseUrl;
 
     @Value("${external.recommendations.api-key:qR8s7V3kLp9WzX2mN5bU6yT1hJ4cF0aG_3dE2vY9}")
