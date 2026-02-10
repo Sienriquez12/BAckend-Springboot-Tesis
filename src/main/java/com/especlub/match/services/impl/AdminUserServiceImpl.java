@@ -135,6 +135,21 @@ public class AdminUserServiceImpl implements AdminUserService {
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
+
+        // Handle role updates: null -> no change; empty list -> clear roles; otherwise set to provided roles
+        if (dto.getRoleIds() != null) {
+            List<Long> roleIds = dto.getRoleIds();
+            if (roleIds.isEmpty()) {
+                user.setRoles(new ArrayList<>());
+            } else {
+                List<UserRole> roles = userRoleRepository.findAllByIdInAndRecordStatusTrue(roleIds);
+                if (roles.size() != roleIds.size()) {
+                    throw new CustomExceptions("One or more roles not found or inactive", 404);
+                }
+                user.setRoles(roles);
+            }
+        }
+
         UserInfo saved = userRepository.save(user);
         return toDto(saved);
     }
