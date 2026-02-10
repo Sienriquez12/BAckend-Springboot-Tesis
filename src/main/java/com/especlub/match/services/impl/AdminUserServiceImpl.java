@@ -263,9 +263,9 @@ public class AdminUserServiceImpl implements AdminUserService {
         Optional<ClubMember> currentPres = clubMemberRepository.findPresidentByClubId(clubId);
         if (currentPres.isPresent()) {
             ClubMember prev = currentPres.get();
+            // Si ya existe un presidente distinto, no permitir la asignación -> lanzar excepción personalizada
             if (!prev.getStudent().getId().equals(student.getId())) {
-                prev.setIsPresident(false);
-                clubMemberRepository.save(prev);
+                throw new CustomExceptions("No puede ser presidente de ese club porque ya existe uno", 400);
             }
         }
 
