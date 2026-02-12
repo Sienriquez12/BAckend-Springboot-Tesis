@@ -12,5 +12,5 @@ public class CreateClubRequestDto {
     private Set<Long> reasonIds;
     private Set<Long> interestIds;
     private Set<Long> desiredSoftSkillIds;
+    private String whatsappGroupLink; // nuevo campo para enlace de whatsapp
 }
-

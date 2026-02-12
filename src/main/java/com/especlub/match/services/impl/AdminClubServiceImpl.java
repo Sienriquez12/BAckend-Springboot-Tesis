@@ -60,6 +60,7 @@ public class AdminClubServiceImpl implements AdminClubService {
                 .name(dto.getName())
                 .description(dto.getDescription())
                 .capacity(dto.getCapacity())
+                .whatsappGroupLink(dto.getWhatsappGroupLink())
                 .build();
 
         if (dto.getReasonIds() != null && !dto.getReasonIds().isEmpty()) {
@@ -88,6 +89,7 @@ public class AdminClubServiceImpl implements AdminClubService {
         if (dto.getName() != null) club.setName(dto.getName());
         if (dto.getDescription() != null) club.setDescription(dto.getDescription());
         if (dto.getCapacity() != null) club.setCapacity(dto.getCapacity());
+        if (dto.getWhatsappGroupLink() != null) club.setWhatsappGroupLink(dto.getWhatsappGroupLink());
 
         if (dto.getReasonIds() != null) {
             Set<ClubReason> reasons = new HashSet<>(clubReasonRepository.findAllByIdInAndRecordStatusTrue(dto.getReasonIds()));
@@ -242,3 +244,4 @@ public class AdminClubServiceImpl implements AdminClubService {
                 .build();
     }
 }
+
