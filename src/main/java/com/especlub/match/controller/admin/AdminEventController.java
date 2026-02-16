@@ -75,11 +75,6 @@ public class AdminEventController implements AdminEventControllerDoc {
 
     @PostMapping("/{id}/notify")
     public ResponseEntity<JsonDtoResponse<Void>> notifyMembers(@PathVariable("id") Long eventId) {
-        try {
             return JsonDtoResponse.ok("Notificaciones encoladas", eventNotificationService.notifyEventToMembers(eventId)).toResponseEntity();
-        } catch (Exception ex) {
-            log.error("Error while notifying members for event id={}: {}", eventId, ex.getMessage(), ex);
-            return JsonDtoResponse.<Void>error("Error al encolar notificaciones", 500).toResponseEntity();
-        }
     }
 }
