@@ -165,6 +165,21 @@ public class AdminEventServiceImpl implements AdminEventService {
         return opt.map(this::toDto).orElse(null);
     }
 
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new CustomExceptions("Event not found", 404));
+
+        if (!Boolean.TRUE.equals(event.getRecordStatus())) {
+            // already deleted/inactive - consider as not found
+            throw new CustomExceptions("Event not found", 404);
+        }
+
+        event.setRecordStatus(false);
+        eventRepository.save(event);
+    }
+
     private EventAdminDto toDto(Event e) {
         if (e == null) return null;
         return EventAdminDto.builder()

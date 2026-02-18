@@ -73,6 +73,12 @@ public class AdminEventController implements AdminEventControllerDoc {
         return JsonDtoResponse.ok("Event updated", updated).toResponseEntity();
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<JsonDtoResponse<Void>> delete(@PathVariable Long id) {
+        adminEventService.delete(id);
+        return JsonDtoResponse.<Void>ok("Event deleted", null).toResponseEntity();
+    }
+
     @PostMapping("/{id}/notify")
     public ResponseEntity<JsonDtoResponse<Void>> notifyMembers(@PathVariable("id") Long eventId) {
             return JsonDtoResponse.ok("Notificaciones encoladas", eventNotificationService.notifyEventToMembers(eventId)).toResponseEntity();

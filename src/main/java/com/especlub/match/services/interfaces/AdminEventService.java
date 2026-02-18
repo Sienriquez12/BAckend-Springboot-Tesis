@@ -12,4 +12,5 @@ public interface AdminEventService {
     List<EventAdminDto> findAllActiveByUser(String jwt);
     List<EventAdminDto> findAllActive();
     EventAdminDto update(Long id, UpdateEventRequestDto dto);
+    void delete(Long id);
 }
