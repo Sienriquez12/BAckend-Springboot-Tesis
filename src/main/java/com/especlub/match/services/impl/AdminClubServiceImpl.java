@@ -60,6 +60,7 @@ public class AdminClubServiceImpl implements AdminClubService {
                 .name(dto.getName())
                 .description(dto.getDescription())
                 .capacity(dto.getCapacity())
+                .recordStatus(true)
                 .whatsappGroupLink(dto.getWhatsappGroupLink())
                 .build();
 
